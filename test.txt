@@ -1,0 +1,76 @@
+package bluejay.parser;
+
+import bluejay.Settings;
+import bluejay.util.Toolbox;
+
+public class LineExtractor {
+	
+	public static boolean enabled = false;
+	
+	public static void enable() {
+		enabled = true;
+	}
+	
+	private static String user, ip, msg, relay;
+	
+	public static void extract(String line) {
+		if (!enabled) return;
+		try {
+		String[] tmp;
+		
+		user = null;
+		ip = null;
+		msg = null;
+		relay = null;
+		
+		// Make sure its not a server message
+		if (line.startsWith(":")) {
+			line = line.substring(1);
+		} else return;
+		
+		// You can get the user easily
+		user = line.split("!")[0];
+		if (line.contains("~")) {
+			line = line.split("!")[1].split("~")[1];
+		}
+		
+		// Split the line apart and process each part individually
+		tmp = line.split(":");
+		
+		// Extract the IP from the first argument
+		ip = tmp[0].split(" ")[0];
+		
+		// If user is a registered ORE server, use tmp[1] as user instead
+		// And use tmp[2] as message
+		if (Toolbox.itemInArray(Settings.ORE_SERVERS, user)) {
+			//System.out.println("USING RELAY SERVER");
+			relay = user;
+			user = tmp[1];
+			msg = tmp[2].substring(1);
+		} else {
+			msg = tmp[1];
+		}
+		
+		} catch(Exception e) {
+			//e.printStackTrace();
+		}
+	}
+	
+	public static String getMessage() {
+		return msg;
+	}
+	
+	public static String getIPAddress() {
+		return ip;
+	}
+	
+	public static String getUser() {
+		if (user == null) return null;
+		return Toolbox.filter(user);
+	}
+	
+	public static String getRelay() {
+		return relay;
+	}
+
+}
